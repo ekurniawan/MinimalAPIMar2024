@@ -1,3 +1,4 @@
+using CatalogServices;
 using CatalogServices.DAL;
 using CatalogServices.DAL.Interfaces;
 using CatalogServices.Models;
@@ -10,7 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //meregister service menggunakan DI
-builder.Services.AddScoped<ICategory, CatagoryDAL>();
+builder.Services.AddScoped<ICategory, CategoryDapper>();
 
 var app = builder.Build();
 
@@ -25,30 +26,52 @@ app.UseHttpsRedirection();
 
 app.MapGet("/api/categories", (ICategory categoryDal) =>
 {
+    List<CategoryDTO> categoriesDto = new List<CategoryDTO>();
     var categories = categoryDal.GetAll();
-    return Results.Ok(categories);
+    foreach (var category in categories)
+    {
+        categoriesDto.Add(new CategoryDTO
+        {
+            CategoryName = category.CategoryName
+        });
+    }
+    return Results.Ok(categoriesDto);
 });
 
 app.MapGet("/api/categories/{id}", (ICategory categoryDal, int id) =>
 {
+    CategoryDTO categoryDto = new CategoryDTO();
     var category = categoryDal.GetById(id);
     if (category == null)
     {
         return Results.NotFound();
     }
-    return Results.Ok(category);
+    categoryDto.CategoryName = category.CategoryName;
+    return Results.Ok(categoryDto);
 });
 
 app.MapGet("/api/categories/search/{name}", (ICategory categoryDal, string name) =>
 {
+    List<CategoryDTO> categoriesDto = new List<CategoryDTO>();
     var categories = categoryDal.GetByName(name);
-    return Results.Ok(categories);
+    foreach (var category in categories)
+    {
+        categoriesDto.Add(new CategoryDTO
+        {
+            CategoryName = category.CategoryName
+        });
+    }
+    return Results.Ok(categoriesDto);
 });
 
-app.MapPost("/api/categories", (ICategory categoryDal, Category category) =>
+app.MapPost("/api/categories", (ICategory categoryDal, CategoryCreateDto categoryCreateDto) =>
 {
     try
     {
+        Category category = new Category
+        {
+            CategoryName = categoryCreateDto.CategoryName
+        };
         categoryDal.Insert(category);
 
         //return 201 Created
@@ -60,10 +83,15 @@ app.MapPost("/api/categories", (ICategory categoryDal, Category category) =>
     }
 });
 
-app.MapPut("/api/categories", (ICategory categoryDal, Category category) =>
+app.MapPut("/api/categories", (ICategory categoryDal, CategoryUpdateDto categoryUpdateDto) =>
 {
     try
     {
+        var category = new Category
+        {
+            CategoryID = categoryUpdateDto.CategoryID,
+            CategoryName = categoryUpdateDto.CategoryName
+        };
         categoryDal.Update(category);
         return Results.Ok();
     }

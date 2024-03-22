@@ -20,7 +20,24 @@ public class CategoryDapper : ICategory
     }
     public void Delete(int id)
     {
-        throw new NotImplementedException();
+        using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+        {
+            var strSql = @"DELETE FROM Categories 
+                               WHERE CategoryID = @CategoryID";
+            var param = new { CategoryID = id };
+            try
+            {
+                conn.Execute(strSql, param);
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new ArgumentException($"Error: {sqlEx.Message} - {sqlEx.Number}");
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"Error: {ex.Message}");
+            }
+        }
     }
 
     public IEnumerable<Category> GetAll()
@@ -63,11 +80,44 @@ public class CategoryDapper : ICategory
 
     public void Insert(Category obj)
     {
-        throw new NotImplementedException();
+        using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+        {
+            var strSql = @"INSERT INTO Categories (CategoryName) VALUES (@CategoryName)";
+            var param = new { CategoryName = obj.CategoryName };
+            try
+            {
+                conn.Execute(strSql, param);
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new ArgumentException($"Error: {sqlEx.Message} - {sqlEx.Number}");
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"Error: {ex.Message}");
+            }
+        }
     }
 
     public void Update(Category obj)
     {
-        throw new NotImplementedException();
+        using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+        {
+            var strSql = @"UPDATE Categories SET CategoryName = @CategoryName 
+                            WHERE CategoryID = @CategoryID";
+            var param = new { CategoryName = obj.CategoryName, CategoryID = obj.CategoryID };
+            try
+            {
+                conn.Execute(strSql, param);
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new ArgumentException($"Error: {sqlEx.Message} - {sqlEx.Number}");
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"Error: {ex.Message}");
+            }
+        }
     }
 }
